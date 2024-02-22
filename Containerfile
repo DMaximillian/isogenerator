@@ -17,7 +17,9 @@ ENV WEB_UI="false"
 COPY / /isogenerator
 WORKDIR /isogenerator
 
-RUN dnf install -y make && make install-deps
+RUN dnf install -y make && \
+  make install-deps && \
+  dnf clean all
 
 VOLUME /isogenerator/output
 
