@@ -25,6 +25,9 @@ inputs:
   IMAGE_TAG:
     description: Tag of the source container image
     required: false
+  EXTRA_BOOT_PARAMS:
+    description: Extra params used by grub to boot the anaconda installer
+    required: false
   WEB_UI:
     description: Enable Anaconda WebUI
     required: true
@@ -103,9 +106,10 @@ runs:
           IMAGE_TAG=${{ inputs.IMAGE_TAG || inputs.VERSION }} \
           VARIANT=${{ inputs.VARIANT }} \
           VERSION=${{ inputs.VERSION }} \
-          WEB_UI=${{ inputs.WEB_UI }}
+          WEB_UI=${{ inputs.WEB_UI }} \
+          EXTRA_BOOT_PARAMS=${{ inputs.EXTRA_BOOT_PARAMS }}
 
-    - name: Create deploy.iso
+    - name: Create deploy.iso and generate sha256 checksum
       shell: bash
       run: |
         make ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso \
@@ -117,13 +121,14 @@ runs:
           VERSION=${{ inputs.VERSION }} \
           WEB_UI=${{ inputs.WEB_UI }}
         mkdir end_iso
+        sha256sum ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso > ./end_iso/${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}-CHECKSUM
         mv ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso end_iso/
 
     - name: Upload ISO as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}-${{ inputs.VARIANT }}.iso
-        path: end_iso/*.iso
+        name: ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso
+        path: end_iso/*
         if-no-files-found: error
         retention-days: 0
         compression-level: 0

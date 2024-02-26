@@ -5,6 +5,7 @@ VERSION = 39
 IMAGE_REPO = ghcr.io/ublue-os
 IMAGE_NAME = base-main
 IMAGE_TAG = $(VERSION)
+EXTRA_BOOT_PARAMS =
 VARIANT = Kinoite
 WEB_UI = false
 
@@ -48,6 +49,25 @@ lorax_templates/%.tmpl: lorax_templates/%.tmpl.in
 # Step 2: Build boot.iso using Lorax
 boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.tmpl
 	rm -Rf $(_BASE_DIR)/results
+
+	# Remove the "Test this media & install" menu entry
+	sed -i '/menuentry '\''Test this media & install @PRODUCT@ @VERSION@'\'' --class fedora --class gnu-linux --class gnu --class os {/,/}/d' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg
+	sed -i '/menuentry '\''Test this media & install @PRODUCT@ @VERSION@'\'' --class fedora --class gnu-linux --class gnu --class os {/,/}/d' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-efi.cfg
+
+	# Set the default menu entry to the first one
+	sed -i 's/set default="1"/set default="0"/' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg
+	sed -i 's/set default="1"/set default="0"/' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-efi.cfg
+
+	# Add Extra Boot Parameters to all menu entries
+	sed -i 's/linux @KERNELPATH@ @ROOT@ quiet/linux @KERNELPATH@ @ROOT@ quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg
+	sed -i 's/linuxefi @KERNELPATH@ @ROOT@ quiet/linuxefi @KERNELPATH@ @ROOT@ quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-efi.cfg
+
+	sed -i 's/linux @KERNELPATH@ @ROOT@ nomodeset quiet/linux @KERNELPATH@ @ROOT@ nomodeset quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg
+	sed -i 's/linuxefi @KERNELPATH@ @ROOT@ nomodeset quiet/linuxefi @KERNELPATH@ @ROOT@ nomodeset quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-efi.cfg
+
+	sed -i 's/linux @KERNELPATH@ @ROOT@ inst.rescue quiet/linux @KERNELPATH@ @ROOT@ inst.rescue quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg
+	sed -i 's/linuxefi @KERNELPATH@ @ROOT@ inst.rescue quiet/linuxefi @KERNELPATH@ @ROOT@ inst.rescue quiet $(EXTRA_BOOT_PARAMS)/g' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-efi.cfg
+
 	lorax -p $(IMAGE_NAME) -v $(VERSION) -r $(VERSION) -t $(VARIANT) \
           --isfinal --buildarch=$(ARCH) --volid=$(_VOLID) \
           $(_LORAX_ARGS) \
@@ -55,6 +75,7 @@ boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.
           --repo /etc/yum.repos.d/fedora-updates.repo \
           --add-template $(_BASE_DIR)/lorax_templates/set_installer.tmpl \
 		  --add-template $(_BASE_DIR)/lorax_templates/configure_upgrades.tmpl \
+		  --add-template $(_BASE_DIR)/lorax_templates/secure_boot_key.tmpl \
           $(_BASE_DIR)/results/
 	mv $(_BASE_DIR)/results/images/boot.iso $(_BASE_DIR)/
 
