@@ -56,7 +56,7 @@ boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.
 	sed 's/@ENROLLMENT_PASSWORD@/$(ENROLLMENT_PASSWORD)/' $(_BASE_DIR)/scripts/enroll-secureboot-key.sh.in > $(_BASE_DIR)/scripts/enroll-secureboot-key.sh
 
 	if [ -n "$(SECURE_BOOT_KEY_URL)" ]; then\
-    curl --fail -o $(_BASE_DIR)/sb_pubkey.der $(SECURE_BOOT_KEY_URL);\
+    curl --fail -L -o $(_BASE_DIR)/sb_pubkey.der $(SECURE_BOOT_KEY_URL);\
 	fi
 
 	# Remove the "Test this media & install" menu entry
