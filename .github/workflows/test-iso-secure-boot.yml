@@ -28,7 +28,15 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - 38
           - 39
+        image_tag: [latest,gts]
+        exclude:
+          - version: 38
+            image_tag: latest
+          - version: 39
+            image_tag: gts
+
 
     steps:
       - name: Checkout
@@ -38,11 +46,11 @@ jobs:
         uses: ./
         with:
           ARCH: 'x86_64'
-          IMAGE_NAME: 'bazzite'
+          IMAGE_NAME: 'bluefin'
           IMAGE_REPO: 'ghcr.io/ublue-os'
           VARIANT: 'Kinoite'
           VERSION: ${{ matrix.version }}
-          IMAGE_TAG: 'stable'
+          IMAGE_TAG: ${{ matrix.image_tag }}
           ACTION_REPO: ${{ github.repository }}
           ACTION_REF: ${{ github.ref }}
           SECURE_BOOT_KEY_URL: 'https://github.com/ublue-os/akmods/raw/main/certs/public_key.der'
