@@ -29,16 +29,18 @@ docker run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IM
 ## Customizing
 The following variables can be used to customize the create image.
 
-| Variable          | Description                                              | Default Value          |
-| ----------------- | -------------------------------------------------------- | ---------------------- |
-| ARCH              | Architecture for image to build                          | x86_64                 |
-| VERSION           | Fedora version of installer to build                     | 39                     |
-| IMAGE_REPO        | Repository containing the source container image         | ghcr.io/ublue-os       |
-| IMAGE_NAME        | Name of the source container image                       | base-main              |
-| IMAGE_TAG         | Tag of the source container image                        | *VERSION*              |
-| EXTRA_BOOT_PARAMS | Extra params used by grub to boot the anaconda installer | \[empty\]              |
-| VARIANT           | Source container variant\*                               | Kinoite                |
-| WEB_UI            | Enable Anaconda WebUI (experimental)                     | false                  |
+| Variable            | Description                                              | Default Value          |
+| -----------------   | -------------------------------------------------------- | ---------------------- |
+| ARCH                | Architecture for image to build                          | x86_64                 |
+| VERSION             | Fedora version of installer to build                     | 39                     |
+| IMAGE_REPO          | Repository containing the source container image         | ghcr.io/ublue-os       |
+| IMAGE_NAME          | Name of the source container image                       | base-main              |
+| IMAGE_TAG           | Tag of the source container image                        | *VERSION*              |
+| EXTRA_BOOT_PARAMS   | Extra params used by grub to boot the anaconda installer | \[empty\]              |
+| VARIANT             | Source container variant\*                               | Kinoite                |
+| WEB_UI              | Enable Anaconda WebUI (experimental)                     | false                  |
+| ENROLLMENT_PASSWORD | Password used to enroll secure boot key into BIOS        | isogenerator           |
+| SECURE_BOOT_KEY_URL | URL used to download your secure boot key for enrollment | \[empty\]              |
 
 Available options for VARIANT can be found by running `dnf provides system-release`. 
 Variant will be the third item in the package name. Example: `fedora-release-kinoite-39-34.noarch` will be kinoite
