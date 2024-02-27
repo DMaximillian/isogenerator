@@ -27,9 +27,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: 
+        version:
           - 38
           - 39
+        secure_boot:
+          - true
+          - false
+        include:
+          - secure_boot: true
+            SECURE_BOOT_KEY_URL: 'https://github.com/ublue-os/akmods/raw/main/certs/public_key.der'
+            ENROLLMENT_PASSWORD: 'ublue-os'
+          - secure_boot: false
+            SECURE_BOOT_KEY_URL: ''
+            ENROLLMENT_PASSWORD: ''
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,6 +55,8 @@ jobs:
           VERSION: ${{ matrix.version }}
           ACTION_REPO: ${{ github.repository }}
           ACTION_REF: ${{ github.ref }}
+          SECURE_BOOT_KEY_URL: ${{ matrix.SECURE_BOOT_KEY_URL }}
+          ENROLLMENT_PASSWORD: ${{ matrix.ENROLLMENT_PASSWORD }}
 
   check:
     name: Check build successful
