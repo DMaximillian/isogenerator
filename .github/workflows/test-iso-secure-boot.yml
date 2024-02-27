@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - stable
+          - 39
 
     steps:
       - name: Checkout
@@ -42,6 +42,7 @@ jobs:
           IMAGE_REPO: 'ghcr.io/ublue-os'
           VARIANT: 'Kinoite'
           VERSION: ${{ matrix.version }}
+          IMAGE_TAG: 'stable'
           ACTION_REPO: ${{ github.repository }}
           ACTION_REF: ${{ github.ref }}
           SECURE_BOOT_KEY_URL: 'https://github.com/ublue-os/akmods/raw/main/certs/public_key.der'
