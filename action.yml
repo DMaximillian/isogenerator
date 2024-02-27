@@ -33,10 +33,10 @@ inputs:
     required: true
     default: "false"
   ENROLLMENT_PASSWORD:
-    description: Used for supporting secure boot (requires a key called public-key.der along with it)
+    description: Used for supporting secure boot (requires SECURE_BOOT_KEY_URL to be defined)
     required: false
   SECURE_BOOT_KEY_URL:
-    description: Secure boot key that is installed
+    description: Secure boot key that is installed from URL location
     required: false
   ACTION_REPO:
     description: Repository with the build action
