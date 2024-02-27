@@ -32,6 +32,14 @@ inputs:
     description: Enable Anaconda WebUI
     required: true
     default: "false"
+  ENROLLMENT_PASSWORD:
+    description: Used for supporting secure boot (requires a key called public-key.der along with it)
+    required: false
+    default: "false"
+  SECURE_BOOT_KEY_URL:
+    description: Secure boot key that is installed
+    required: false
+    default: "false"
   ACTION_REPO:
     description: Repository with the build action
     required: false
@@ -107,7 +115,9 @@ runs:
           VARIANT=${{ inputs.VARIANT }} \
           VERSION=${{ inputs.VERSION }} \
           WEB_UI=${{ inputs.WEB_UI }} \
-          EXTRA_BOOT_PARAMS=${{ inputs.EXTRA_BOOT_PARAMS }}
+          EXTRA_BOOT_PARAMS=${{ inputs.EXTRA_BOOT_PARAMS }} \
+          SECURE_BOOT_KEY_URL=${{ inputs.SECURE_BOOT_KEY_URL }} \
+          ENROLLMENT_PASSWORD=${{ inputs.ENROLLMENT_PASSWORD }}
 
     - name: Create deploy.iso and generate sha256 checksum
       shell: bash

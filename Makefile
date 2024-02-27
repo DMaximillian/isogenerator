@@ -8,6 +8,8 @@ IMAGE_TAG = $(VERSION)
 EXTRA_BOOT_PARAMS =
 VARIANT = Kinoite
 WEB_UI = false
+ENROLLMENT_PASSWORD = isogenerator
+SECURE_BOOT_KEY_URL =
 
 # Generated vars
 ## Formatting = _UPPERCASE
@@ -46,9 +48,16 @@ lorax_templates/%.tmpl: lorax_templates/%.tmpl.in
 	sed 's/@IMAGE_REPO_ESCAPED@/$(_IMAGE_REPO_DOUBLE_ESCAPED)/' $(_BASE_DIR)/lorax_templates/$*.tmpl > $(_BASE_DIR)/lorax_templates/$*.tmpl.tmp
 	mv $(_BASE_DIR)/lorax_templates/$*.tmpl{.tmp,}
 
+
 # Step 2: Build boot.iso using Lorax
 boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.tmpl
 	rm -Rf $(_BASE_DIR)/results
+
+	sed 's/@ENROLLMENT_PASSWORD@/$(ENROLLMENT_PASSWORD)/' $(_BASE_DIR)/scripts/enroll-secureboot-key.sh.in > $(_BASE_DIR)/scripts/enroll-secureboot-key.sh
+
+	if [ -n "$(SECURE_BOOT_KEY_URL)" ]; then\
+    curl --fail -o $(_BASE_DIR)/sb_pubkey.der $(SECURE_BOOT_KEY_URL);\
+	fi
 
 	# Remove the "Test this media & install" menu entry
 	sed -i '/menuentry '\''Test this media & install @PRODUCT@ @VERSION@'\'' --class fedora --class gnu-linux --class gnu --class os {/,/}/d' /usr/share/lorax/templates.d/99-generic/config_files/x86/grub2-bios.cfg

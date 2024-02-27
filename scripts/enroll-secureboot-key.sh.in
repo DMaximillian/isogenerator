@@ -2,8 +2,8 @@
 
 set -oue pipefail
 
-readonly SECUREBOOT_KEY="/run/install/repo/ublue-os-akmods-public-key.der"
-readonly ENROLLMENT_PASSWORD="ublue-os"
+readonly ENROLLMENT_PASSWORD=@ENROLLMENT_PASSWORD@
+readonly SECUREBOOT_KEY="/run/install/repo/sb_pubkey.der"
 
 SYS_ID="$(cat /sys/devices/virtual/dmi/id/product_name)"
 if [[ ":Jupiter:Galileo:" =~ ":$SYS_ID:" ]]; then
