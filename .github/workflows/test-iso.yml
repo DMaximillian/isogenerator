@@ -37,9 +37,11 @@ jobs:
           - secure_boot: true
             SECURE_BOOT_KEY_URL: 'https://github.com/ublue-os/akmods/raw/main/certs/public_key.der'
             ENROLLMENT_PASSWORD: 'ublue-os'
+            SECURE_BOOT_STRING: '-secure'
           - secure_boot: false
             SECURE_BOOT_KEY_URL: ''
             ENROLLMENT_PASSWORD: ''
+            SECURE_BOOT_STRING: ''
 
     steps:
       - name: Checkout
@@ -57,6 +59,16 @@ jobs:
           ACTION_REF: ${{ github.ref }}
           SECURE_BOOT_KEY_URL: ${{ matrix.SECURE_BOOT_KEY_URL }}
           ENROLLMENT_PASSWORD: ${{ matrix.ENROLLMENT_PASSWORD }}
+
+      - name: Upload ISO as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: base-main-${{ matrix.version }}${{ matrix.SECURE_BOOT_STRING }}.iso
+          path: end_iso/*
+          if-no-files-found: error
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
 
   check:
     name: Check build successful
