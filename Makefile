@@ -8,7 +8,7 @@ IMAGE_TAG = $(VERSION)
 EXTRA_BOOT_PARAMS =
 VARIANT = Kinoite
 WEB_UI = false
-ENROLLMENT_PASSWORD = isogenerator
+ENROLLMENT_PASSWORD = ublue-os
 SECURE_BOOT_KEY_URL =
 
 # Generated vars
