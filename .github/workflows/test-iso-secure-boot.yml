@@ -18,6 +18,8 @@ jobs:
     container:
       image: fedora:39
       options: "--privileged"
+      volumes:
+        - "/:/host"
     permissions:
       contents: read
       packages: write
@@ -25,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 38
-          - 39
+          - stable
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
