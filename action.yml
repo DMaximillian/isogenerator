@@ -77,7 +77,7 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        repository: ${{ github.github.action_repository }}
+        repository: ${{ github.action_repository }}
         ref: ${{ github.action_ref }}
         submodules: recursive
 
