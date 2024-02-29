@@ -39,14 +39,6 @@ inputs:
   SECURE_BOOT_KEY_URL:
     description: Secure boot key that is installed from URL location
     required: false
-  ACTION_REPO:
-    description: Repository with the build action
-    required: false
-    default: ${{ github.repository }}
-  ACTION_REF:
-    description: Repository ref for the build action
-    required: false
-    default: ${{ github.ref }}
 
 outputs:
   output-directory:
@@ -85,8 +77,8 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        repository: ${{ inputs.ACTION_REPO }}
-        ref: ${{ inputs.ACTION_REF }}
+        repository: ${{ github.github.action_repository }}
+        ref: ${{ github.action_ref }}
         submodules: recursive
 
     - name: Install dependencies
