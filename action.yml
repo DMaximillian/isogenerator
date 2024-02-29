@@ -70,22 +70,13 @@ runs:
           echo "Host must be mounted as /host in order to make more space"
         fi
         
-    - name: Install make and git
+    - name: Install Make
       shell: bash
-      run: dnf install -y make git
-
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      env:
-        ACTION_REF: ${{ github.action_ref }}
-        ACTION_REPO: ${{ github.action_repository }}
-      with:
-        repository: $ACTION_REPO
-        ref: $ACTION_REF
-        submodules: recursive
+      run: dnf install -y make
 
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ github.action_path }}
       run: make install-deps
 
     - name: Lowercase Registry
@@ -96,6 +87,7 @@ runs:
 
     - name: Download image
       shell: bash
+      working-directory: ${{ github.action_path }}
       run: |
         make container/${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }} \
           ARCH=${{ inputs.ARCH }} \
@@ -108,6 +100,7 @@ runs:
 
     - name: Create boot.iso
       shell: bash
+      working-directory: ${{ github.action_path }}
       run: |
         make boot.iso \
           ARCH=${{ inputs.ARCH }} \
@@ -124,6 +117,7 @@ runs:
     - name: Create deploy.iso and generate sha256 checksum
       shell: bash
       id: final
+      working-directory: ${{ github.action_path }}
       run: |
         make ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso \
           ARCH=${{ inputs.ARCH }} \
