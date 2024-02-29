@@ -14,10 +14,7 @@ ENV VARIANT="Kinoite"
 ENV VERSION="${VERSION}"
 ENV WEB_UI="false"
 
-COPY ./lorax_templates /isogenerator/lorax_templates
-COPY ./scripts /isogenerator/scripts
-COPY ./xorriso /isogenerator/xorriso
-COPY ./Makefile /isogenerator/
+COPY ./ /isogenerator
 WORKDIR /isogenerator
 
 RUN dnf install -y make && \
