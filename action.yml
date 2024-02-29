@@ -76,9 +76,12 @@ runs:
 
     - name: Checkout repository
       uses: actions/checkout@v4
+      env:
+        ACTION_REF: ${{ github.action_ref }}
+        ACTION_REPO: ${{ github.action_repository }}
       with:
-        repository: ${{ github.action_repository }}
-        ref: ${{ github.action_ref }}
+        repository: $ACTION_REPO
+        ref: $ACTION_REF
         submodules: recursive
 
     - name: Install dependencies
