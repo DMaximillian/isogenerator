@@ -13,6 +13,8 @@ ENV IMAGE_TAG="${VERSION}"
 ENV VARIANT="Kinoite"
 ENV VERSION="${VERSION}"
 ENV WEB_UI="false"
+ENV SECURE_BOOT_KEY_URL=""
+ENV ENROLLMENT_PASSWORD="ublue-os"
 
 COPY ./ /isogenerator
 WORKDIR /isogenerator
@@ -23,4 +25,4 @@ RUN dnf install -y make && \
 
 VOLUME /isogenerator/output
 
-ENTRYPOINT ["sh", "-c", "make output/${IMAGE_NAME}-${IMAGE_TAG}.iso ARCH=${ARCH} VERSION=${VERSION} IMAGE_REPO=${IMAGE_REPO} IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} VARIANT=${VARIANT} WEB_UI=${WEB_UI}"]
+ENTRYPOINT /isogenerator/entrypoint.sh

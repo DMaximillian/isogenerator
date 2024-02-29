@@ -16,32 +16,45 @@ This will create an ISO with the baked in defaults of the container image.
 See [Customizing](#customizing) for information about customizing the image that gets created. The variable can either be defined as environment variables or as command arguments.
 Examples:
 
-Creating Bluefin GTS ISO
+Creating Universal Blue Silverblue ISO
 ```bash
-docker run --rm --privileged --volume .:/isogenerator/output -e VERSION=38 -e IMAGE_NAME=bluefin -e IMAGE_TAG=gts -e VARIANT=Silverblue ghcr.io/ublue-os/isogenerator:38
+docker run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IMAGE_NAME=silverblue-main -e IMAGE_TAG=latest -e VARIANT=Silverblue ghcr.io/ublue-os/isogenerator:39
+```
+```bash
+# Requires sudo to run
+sudo podman run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IMAGE_NAME=silverblue-main -e IMAGE_TAG=latest -e VARIANT=Silverblue ghcr.io/ublue-os/isogenerator:39
 ```
 
-Creating Bazzite Latest ISO
+Creating Universal Blue Kinoite ISO
 ```bash
-docker run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IMAGE_NAME=bazzite -e IMAGE_TAG=latest -e VARIANT=Kinoite ghcr.io/ublue-os/isogenerator:39
+docker run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IMAGE_NAME=kinoite-main -e IMAGE_TAG=latest -e VARIANT=Kinoite ghcr.io/ublue-os/isogenerator:39
+```
+```bash
+# Requires sudo to run
+sudo podman run --rm --privileged --volume .:/isogenerator/output -e VERSION=39 -e IMAGE_NAME=kinoite-main -e IMAGE_TAG=latest -e VARIANT=Kinoite ghcr.io/ublue-os/isogenerator:39
 ```
 
 ## Customizing
 The following variables can be used to customize the create image.
 
-| Variable          | Description                                              | Default Value          |
-| ----------------- | -------------------------------------------------------- | ---------------------- |
-| ARCH              | Architecture for image to build                          | x86_64                 |
-| VERSION           | Fedora version of installer to build                     | 39                     |
-| IMAGE_REPO        | Repository containing the source container image         | ghcr.io/ublue-os       |
-| IMAGE_NAME        | Name of the source container image                       | base-main              |
-| IMAGE_TAG         | Tag of the source container image                        | *VERSION*              |
-| EXTRA_BOOT_PARAMS | Extra params used by grub to boot the anaconda installer | \[empty\]              |
-| VARIANT           | Source container variant\*                               | Kinoite                |
-| WEB_UI            | Enable Anaconda WebUI (experimental)                     | false                  |
+| Variable            | Description                                                  | Default Value          |
+| -----------------   | ------------------------------------------------------------ | ---------------------- |
+| ARCH                | Architecture for image to build                              | x86_64                 |
+| VERSION             | Fedora version of installer to build                         | 39                     |
+| IMAGE_REPO          | Repository containing the source container image             | ghcr.io/ublue-os       |
+| IMAGE_NAME          | Name of the source container image                           | base-main              |
+| IMAGE_TAG           | Tag of the source container image                            | *VERSION*              |
+| EXTRA_BOOT_PARAMS   | Extra params used by grub to boot the anaconda installer     | \[empty\]              |
+| VARIANT             | Source container variant\*                                   | Kinoite                |
+| WEB_UI              | Enable Anaconda WebUI (experimental)                         | false                  |
+| ENROLLMENT_PASSWORD | Password used to enroll secure boot key into BIOS\*\*        | isogenerator           |
+| SECURE_BOOT_KEY_URL | URL used to download your secure boot key for enrollment\*\* | \[empty\]              |
 
-Available options for VARIANT can be found by running `dnf provides system-release`. 
-Variant will be the third item in the package name. Example: `fedora-release-kinoite-39-34.noarch` will be kinoite
+\*Available options for VARIANT can be found by running `dnf provides system-release`. Variant will be the third item in the package name. Example: `fedora-release-kinoite-39-34.noarch` will be kinoite
+
+\*\*NOTE: ENROLLMENT_PASSWORD and SECURE_BOOT_KEY_URL are not required. They are only required if you are creating specific kernel modules or if you are using Universal Blue Kernel Modules.
+
+Our public key for our kmods is located here: https://github.com/ublue-os/akmods/raw/main/certs/public_key.der
 
 ## VSCode Dev Container
 There is a dev container configuration provided for development. By default it will use the existing container image available at `ghcr.io/ublue-os/isogenerator`, however, you can have it build a new image by editing `.devcontainer/devcontainer.json` and replacing `image` with `build`. `Ctrl+/` can be used to comment and uncomment blocks of code within VSCode.
