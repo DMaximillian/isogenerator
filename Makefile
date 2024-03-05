@@ -13,6 +13,7 @@ SECURE_BOOT_KEY_URL =
 FLATPAK_REMOTE_NAME = flathub
 FLATPAK_REMOTE_URL = https://flathub.org/repo/flathub.flatpakrepo
 FLATPAK_REMOTE_REFS =
+FLATPAK_TEMPLATE = $(_BASE_DIR)/external/fedora-lorax-templates/ostree-based-installer/lorax-embed-flatpaks.tmpl
 
 # Generated vars
 ## Formatting = _UPPERCASE
@@ -20,8 +21,6 @@ _BASE_DIR = $(shell pwd)
 _IMAGE_REPO_ESCAPED = $(subst /,\/,$(IMAGE_REPO))
 _IMAGE_REPO_DOUBLE_ESCAPED = $(subst \,\\\,$(_IMAGE_REPO_ESCAPED))
 _VOLID = $(firstword $(subst -, ,$(IMAGE_NAME)))-$(ARCH)-$(IMAGE_TAG)
-_FLATPAK_TEMPLATES = $(_BASE_DIR)/external/fedora-lorax-templates/ostree-based-installer/lorax-embed-flatpaks.tmpl
-_TEMPLATE_VARS = FLATPAK_REMOTE_NAME FLATPAK_REMOTE_URL FLATPAK_REMOTE_REFS
 
 ifeq ($(VARIANT),'Server')
 _LORAX_ARGS = --macboot --noupgrade
@@ -95,10 +94,12 @@ boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.
           --repo /etc/yum.repos.d/fedora.repo \
           --repo /etc/yum.repos.d/fedora-updates.repo \
           --add-template $(_BASE_DIR)/lorax_templates/set_installer.tmpl \
-		  --add-template $(_BASE_DIR)/lorax_templates/configure_upgrades.tmpl \
-		  --add-template $(_BASE_DIR)/lorax_templates/secure_boot_key.tmpl \
-			$(foreach file,$(_FLATPAK_TEMPLATES),--add-template $(file)) \
-			$(foreach var,$(_TEMPLATE_VARS),--add-template-var "$(shell echo $(var) | tr '[:upper:]' '[:lower:]')=$($(var))") \
+          --add-template $(_BASE_DIR)/lorax_templates/configure_upgrades.tmpl \
+          --add-template $(_BASE_DIR)/lorax_templates/secure_boot_key.tmpl \
+          --add-template $(FLATPAK_TEMPLATE) \
+          --add-template-var "flatpak_remote_name=$(FLATPAK_REMOTE_NAME)" \
+          --add-template-var "flatpak_remote_url=$(FLATPAK_REMOTE_URL)" \
+          --add-template-var "flatpak_remote_refs=$(FLATPAK_REMOTE_REFS)" \
           $(_BASE_DIR)/results/
 	mv $(_BASE_DIR)/results/images/boot.iso $(_BASE_DIR)/
 
