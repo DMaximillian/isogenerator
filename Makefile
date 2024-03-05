@@ -14,6 +14,7 @@ FLATPAK_REMOTE_NAME = flathub
 FLATPAK_REMOTE_URL = https://flathub.org/repo/flathub.flatpakrepo
 FLATPAK_REMOTE_REFS =
 FLATPAK_TEMPLATE = $(_BASE_DIR)/external/fedora-lorax-templates/ostree-based-installer/lorax-embed-flatpaks.tmpl
+ROOTFS_SIZE = 8
 
 # Generated vars
 ## Formatting = _UPPERCASE
@@ -93,6 +94,7 @@ boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.
           $(_LORAX_ARGS) \
           --repo /etc/yum.repos.d/fedora.repo \
           --repo /etc/yum.repos.d/fedora-updates.repo \
+          --rootfs-size=$(ROOTFS_SIZE) \
           --add-template $(_BASE_DIR)/lorax_templates/set_installer.tmpl \
           --add-template $(_BASE_DIR)/lorax_templates/configure_upgrades.tmpl \
           --add-template $(_BASE_DIR)/lorax_templates/secure_boot_key.tmpl \
