@@ -69,85 +69,26 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Cleanup host
-      shell: bash
-      run: |
-        if [[ -d /host ]]
-        then
-          df -h /host
-          # Remove Android Library
-          rm -Rf /host/usr/local/lib/android
-          # Remove .NET runtime
-          rm -Rf /host/usr/share/dotnet
-          # Remove Haskell runtime
-          rm -rf /host/opt/ghc
-          rm -rf /host/usr/local/.ghcup
-          chroot /host docker image prune --all --force
-          df -h /host
-        else
-          echo "Host must be mounted as /host in order to make more space"
-        fi
-        
-    - name: Install Make
-      shell: bash
-      run: dnf install -y make
-
-    - name: Install dependencies
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: make install-deps
-
-    - name: Lowercase Registry
-      id: registry_case
-      uses: ASzc/change-string-case-action@v6
-      with:
-        string: ${{ inputs.IMAGE_REPO }}
-
-    - name: Download image
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: |
-        make container/${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }} \
-          ARCH=${{ inputs.ARCH }} \
-          IMAGE_NAME=${{ inputs.IMAGE_NAME }} \
-          IMAGE_REPO=${{ steps.registry_case.outputs.lowercase }} \
-          IMAGE_TAG=${{ inputs.IMAGE_TAG || inputs.VERSION }} \
-          VARIANT=${{ inputs.VARIANT }} \
-          VERSION=${{ inputs.VERSION }} \
-          WEB_UI=${{ inputs.WEB_UI }}
-
-    - name: Create boot.iso
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: |
-        make boot.iso \
-          ARCH=${{ inputs.ARCH }} \
-          IMAGE_NAME=${{ inputs.IMAGE_NAME }} \
-          IMAGE_REPO=${{ steps.registry_case.outputs.lowercase }} \
-          IMAGE_TAG=${{ inputs.IMAGE_TAG || inputs.VERSION }} \
-          VARIANT=${{ inputs.VARIANT }} \
-          VERSION=${{ inputs.VERSION }} \
-          WEB_UI=${{ inputs.WEB_UI }} \
-          EXTRA_BOOT_PARAMS=${{ inputs.EXTRA_BOOT_PARAMS }} \
-          SECURE_BOOT_KEY_URL=${{ inputs.SECURE_BOOT_KEY_URL }} \
-          ENROLLMENT_PASSWORD=${{ inputs.ENROLLMENT_PASSWORD }} \
-          FLATPAK_REMOTE_NAME=${{ inputs.FLATPAK_REMOTE_NAME }} \
-          FLATPAK_REMOTE_URL=${{ inputs.FLATPAK_REMOTE_URL }} \
-          FLATPAK_REMOTE_REFS="${{ inputs.FLATPAK_REMOTE_REFS }}"
-
-    - name: Create deploy.iso and generate sha256 checksum
+    - name: Run docker image and generate sha256 checksum
       shell: bash
       id: final
       working-directory: ${{ github.action_path }}
       run: |
-        make ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso \
-          ARCH=${{ inputs.ARCH }} \
-          IMAGE_NAME=${{ inputs.IMAGE_NAME }} \
-          IMAGE_REPO=${{ steps.registry_case.outputs.lowercase }} \
-          IMAGE_TAG=${{ inputs.IMAGE_TAG || inputs.VERSION }} \
-          VARIANT=${{ inputs.VARIANT }} \
-          VERSION=${{ inputs.VERSION }} \
-          WEB_UI=${{ inputs.WEB_UI }}
+        # Check if running inside of the action repo
+        if [[ -z "${{ github.action_ref }}" ]]; then if [[ "${{ github.ref_name }}" =~ (.*)/merge ]]; then tag=pr-${BASH_REMATCH[1]}; else tag=${{ github.ref_name }}; fi; fi
+        if [[ -z "${tag}" ]]; then tag=${{ github.action_ref }}; fi
+        docker run --privileged --volume .:/isogenerator/output \
+          -e ARCH=${{ inputs.arch }} \
+          -e IMAGE_NAME=${{ inputs.image_name }} \
+          -e IMAGE_REPO=${{ inputs.image_repo }} \
+          -e VARIANT=${{ inputs.variant }} \
+          -e VERSION=${{ inputs.version }} \
+          -e IMAGE_TAG=${{ inputs.image_tag || inputs.version }} \
+          -e WEB_UI=${{ inputs.web_ui }} \
+          -e FLATPAK_REMOTE_NAME=${{ inputs.flatpak_remote_name }} \
+          -e FLATPAK_REMOTE_URL=${{ inputs.flatpak_remote_url }} \
+          -e FLATPAK_REMOTE_REFS="${{ inputs.flatpak_remote_refs }}" \
+          ghcr.io/jasonn3/build-container-installer:${tag}
         mkdir end_iso
         sha256sum ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso > ./end_iso/${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}-CHECKSUM
         mv ${{ inputs.IMAGE_NAME }}-${{ inputs.IMAGE_TAG || inputs.VERSION }}.iso end_iso/
