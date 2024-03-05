@@ -45,6 +45,18 @@ inputs:
   ACTION_REF:
     deprecationMessage: This variable is no longer used and will be removed in a future version
     required: false
+  FLATPAK_REMOTE_NAME:
+    description: Name of the Flatpak remote repo
+    required: false
+    default: "flathub"
+  FLATPAK_REMOTE_URL:
+    description: The URL of the Flatpak remote flatpakrepo file
+    required: false
+    default: https://flathub.org/repo/flathub.flatpakrepo
+  FLATPAK_REMOTE_REFS:
+    description: Space delimited list of refs to the flatpak packages to install
+    required: false
+    default: ""
 
 outputs:
   output-directory:
@@ -118,7 +130,10 @@ runs:
           WEB_UI=${{ inputs.WEB_UI }} \
           EXTRA_BOOT_PARAMS=${{ inputs.EXTRA_BOOT_PARAMS }} \
           SECURE_BOOT_KEY_URL=${{ inputs.SECURE_BOOT_KEY_URL }} \
-          ENROLLMENT_PASSWORD=${{ inputs.ENROLLMENT_PASSWORD }}
+          ENROLLMENT_PASSWORD=${{ inputs.ENROLLMENT_PASSWORD }} \
+          FLATPAK_REMOTE_NAME=${{ inputs.FLATPAK_REMOTE_NAME }} \
+          FLATPAK_REMOTE_URL=${{ inputs.FLATPAK_REMOTE_URL }} \
+          FLATPAK_REMOTE_REFS="${{ inputs.FLATPAK_REMOTE_REFS }}"
 
     - name: Create deploy.iso and generate sha256 checksum
       shell: bash

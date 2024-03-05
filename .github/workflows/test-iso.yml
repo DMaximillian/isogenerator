@@ -29,6 +29,7 @@ jobs:
       matrix:
         version: [38, 39]
         boot: [secureboot, insecure]
+        flatpak_refs: app/org.videolan.VLC/x86_64/stable runtime/org.kde.Platform/x86_64/5.15-23.08
         include:
           - boot: secureboot
             SECURE_BOOT_KEY_URL: 'https://github.com/ublue-os/akmods/raw/main/certs/public_key.der'
@@ -42,6 +43,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Build ISO
         id: build-iso
@@ -54,6 +57,7 @@ jobs:
           VERSION: ${{ matrix.version }}
           SECURE_BOOT_KEY_URL: ${{ matrix.SECURE_BOOT_KEY_URL }}
           ENROLLMENT_PASSWORD: ${{ matrix.ENROLLMENT_PASSWORD }}
+          FLATPAK_REMOTE_REFS: ${{ matrix.flatpak_refs }}
 
       - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4

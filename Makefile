@@ -10,6 +10,9 @@ VARIANT = Kinoite
 WEB_UI = false
 ENROLLMENT_PASSWORD = ublue-os
 SECURE_BOOT_KEY_URL =
+FLATPAK_REMOTE_NAME = flathub
+FLATPAK_REMOTE_URL = https://flathub.org/repo/flathub.flatpakrepo
+FLATPAK_REMOTE_REFS =
 
 # Generated vars
 ## Formatting = _UPPERCASE
@@ -17,6 +20,8 @@ _BASE_DIR = $(shell pwd)
 _IMAGE_REPO_ESCAPED = $(subst /,\/,$(IMAGE_REPO))
 _IMAGE_REPO_DOUBLE_ESCAPED = $(subst \,\\\,$(_IMAGE_REPO_ESCAPED))
 _VOLID = $(firstword $(subst -, ,$(IMAGE_NAME)))-$(ARCH)-$(IMAGE_TAG)
+_FLATPAK_TEMPLATES = $(_BASE_DIR)/external/fedora-lorax-templates/ostree-based-installer/lorax-embed-flatpaks.tmpl
+_TEMPLATE_VARS = FLATPAK_REMOTE_NAME FLATPAK_REMOTE_URL FLATPAK_REMOTE_REFS
 
 ifeq ($(VARIANT),'Server')
 _LORAX_ARGS = --macboot --noupgrade
@@ -26,6 +31,10 @@ endif
 
 ifeq ($(WEB_UI),true)
 _LORAX_ARGS += -i anaconda-webui
+endif
+
+ifneq ($(FLATPAK_REMOTE_REFS),)
+_LORAX_ARGS += -i flatpak-libs
 endif
 
 # Step 7: Move end ISO to root
@@ -88,6 +97,8 @@ boot.iso: lorax_templates/set_installer.tmpl lorax_templates/configure_upgrades.
           --add-template $(_BASE_DIR)/lorax_templates/set_installer.tmpl \
 		  --add-template $(_BASE_DIR)/lorax_templates/configure_upgrades.tmpl \
 		  --add-template $(_BASE_DIR)/lorax_templates/secure_boot_key.tmpl \
+			$(foreach file,$(_FLATPAK_TEMPLATES),--add-template $(file)) \
+			$(foreach var,$(_TEMPLATE_VARS),--add-template-var "$(shell echo $(var) | tr '[:upper:]' '[:lower:]')=$($(var))") \
           $(_BASE_DIR)/results/
 	mv $(_BASE_DIR)/results/images/boot.iso $(_BASE_DIR)/
 
@@ -99,7 +110,7 @@ container/$(IMAGE_NAME)-$(IMAGE_TAG):
 	podman rmi $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 install-deps:
-	dnf install -y lorax xorriso podman git
+	dnf install -y lorax xorriso podman git flatpak dbus-daemon ostree
 
 # Step 4: Generate xorriso script
 xorriso/%.sh: xorriso/%.sh.in
