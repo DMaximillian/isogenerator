@@ -27,10 +27,9 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Запускаем сборщик напрямую через скрипт сборки репозитория
-          # Передавая название и версию через переменные среды для Lorax
+          # Мы изменили внутреннюю папку контейнера на /isogenerator/output
           docker run --rm --privileged \
-            -v "${{ github.workspace }}/output:/build-container-installer/output" \
+            -v "${{ github.workspace }}/output:/isogenerator/output" \
             -e IMAGE_NAME="bazzite-deck" \
             -e IMAGE_TAG="43.20260420" \
             -e FEDORA_MAJOR_VERSION="43" \
