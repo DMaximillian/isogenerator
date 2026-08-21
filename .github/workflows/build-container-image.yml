@@ -23,16 +23,18 @@ jobs:
       - name: Checkout Isogenerator Source Code
         uses: actions/checkout@v4
 
-      - name: Build Local Isogenerator Image
-        run: |
-          docker build -f Containerfile -t local-isogenerator:latest .
-
       - name: Build ISO Image
         run: |
           mkdir -p ${{ github.workspace }}/output
+          
+          # Запускаем сборщик напрямую через скрипт сборки репозитория
+          # Передавая название и версию через переменные среды для Lorax
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/build-container-installer/output" \
-            local-isogenerator:latest \
+            -e IMAGE_NAME="bazzite-deck" \
+            -e IMAGE_TAG="43.20260420" \
+            -e FEDORA_MAJOR_VERSION="43" \
+            ghcr.io/ublue-os/isogenerator:latest \
             ghcr.io/ublue-os/bazzite-deck:43.20260420
 
       - name: Upload ISO Artifact
