@@ -25,7 +25,7 @@ jobs:
 
       - name: Build Local Isogenerator Image
         run: |
-          docker build -t local-isogenerator:latest .
+          docker build -f Containerfile -t local-isogenerator:latest .
 
       - name: Build ISO Image
         run: |
