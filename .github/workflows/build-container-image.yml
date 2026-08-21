@@ -9,10 +9,16 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Maximize Build Space (Ublue Clean)
-        uses: ublue-os/remove-unwanted-software@main
-        with:
-          extra-squeeze: 'true'
+      - name: Free Disk Space (Bash script)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /root/.dotnet
+          sudo rm -rf /opt/pipx
+          sudo rm -rf /usr/local/share/vcpkg
+          docker image prune --all --force
 
       - name: Build ISO using Isogenerator 43
         run: |
