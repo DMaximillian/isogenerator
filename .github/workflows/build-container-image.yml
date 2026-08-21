@@ -20,12 +20,19 @@ jobs:
           sudo rm -rf /usr/local/share/vcpkg
           docker image prune --all --force
 
-      - name: Build ISO using Isogenerator 43
+      - name: Checkout Isogenerator Source Code
+        uses: actions/checkout@v4
+
+      - name: Build Local Isogenerator Image
+        run: |
+          docker build -t local-isogenerator:latest .
+
+      - name: Build ISO Image
         run: |
           mkdir -p ${{ github.workspace }}/output
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/build-container-installer/output" \
-            ghcr.io/ublue-os/isogenerator:43 \
+            local-isogenerator:latest \
             ghcr.io/ublue-os/bazzite-deck:43.20260420
 
       - name: Upload ISO Artifact
