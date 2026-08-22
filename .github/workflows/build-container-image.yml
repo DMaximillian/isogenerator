@@ -27,16 +27,14 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Запускаем официальную CLI-утилиту BlueBuild напрямую через Docker,
-          # передавая точные аргументы для упаковки конкретной версии Bazzite 43
+          # Мы вызываем бинарник bluebuild и используем правильный синтаксис:
+          # generate-iso --iso-name [имя] image [ссылка_на_образ:тег]
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/build" \
             ghcr.io/blue-build/cli:v0.9.5 \
-            generate-iso \
-            --ref-name "43.20260420" \
-            --image-name "bazzite-deck" \
-            --image-repo "ghcr.io/ublue-os" \
-            --fedora-version "43" \
+            bluebuild generate-iso \
+            --iso-name "bazzite-deck-43.20260420.iso" \
+            image "ghcr.io/ublue-os/bazzite-deck:43.20260420" \
             --output "/build"
 
       - name: Upload ISO Artifact
