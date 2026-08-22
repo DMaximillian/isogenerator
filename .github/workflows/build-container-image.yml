@@ -25,28 +25,28 @@ jobs:
 
       - name: Build ISO via BlueBuild CLI
         run: |
-          mkdir -p ${{ github.workspace }}/output
+          mkdir -p ${{ github.workspace }}/build
           
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${{ github.workspace }}:/build" \
+            -v "${{ github.workspace }}/build:/build" \
             -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
             bluebuild generate-iso \
             --iso-name "bazzite-deck-43.20260420.iso" \
             image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
 
-      - name: Locate and Move ISO File
+      - name: Debug Output Tree (Проверка папок)
         run: |
-          echo "=== Поиск созданного ISO образа на диске ==="
-          # Находим файл по маске и принудительно копируем его в папку output
-          sudo find /home/runner/work/ -name "*.iso" -exec cp {} ${{ github.workspace }}/output/ \;
-          echo "=== Содержимое папки вывода ==="
-          ls -la ${{ github.workspace }}/output/
+          echo "=== Проверяем, где лежат файлы на сервере ==="
+          ls -R ${{ github.workspace }}/build || true
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          path: ${{ github.workspace }}/output/*.iso
+          # Маска '**/*' заставит плагин выгрести все файлы из папки build и её подпапок
+          path: |
+            ${{ github.workspace }}/build/**/*.iso
+            ${{ github.workspace }}/build/**/*.iso-CHECKSUM
           retention-days: 2
