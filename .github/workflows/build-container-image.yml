@@ -25,20 +25,28 @@ jobs:
 
       - name: Build ISO via BlueBuild CLI
         run: |
-          # Запускаем сборку прямо в корневом пространстве репозитория
+          mkdir -p ${{ github.workspace }}/output
+          
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${{ github.workspace }}/build:/build" \
+            -v "${{ github.workspace }}:/build" \
             -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
             bluebuild generate-iso \
             --iso-name "bazzite-deck-43.20260420.iso" \
             image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
 
+      - name: Locate and Move ISO File
+        run: |
+          echo "=== Поиск созданного ISO образа на диске ==="
+          # Находим файл по маске и принудительно копируем его в папку output
+          sudo find /home/runner/work/ -name "*.iso" -exec cp {} ${{ github.workspace }}/output/ \;
+          echo "=== Содержимое папки вывода ==="
+          ls -la ${{ github.workspace }}/output/
+
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          # Ищем созданный ISO-файл в папке build, куда его сохранил Docker
-          path: ${{ github.workspace }}/build/*.iso
+          path: ${{ github.workspace }}/output/*.iso
           retention-days: 2
