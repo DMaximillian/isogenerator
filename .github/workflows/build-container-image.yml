@@ -27,10 +27,10 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Запускаем строго по синтаксису утилиты: 
-          # bluebuild generate-iso --iso-name [имя] image [ссылка]
-          # Папку маппим на /build, так как это стандартная рабочая директория
+          # Мы добавили проброс сокета: -v /var/run/docker.sock:/var/run/docker.sock
+          # Теперь контейнер получит доступ к движку Docker сервера GitHub
           docker run --rm --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
             -v "${{ github.workspace }}/output:/build" \
             -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
