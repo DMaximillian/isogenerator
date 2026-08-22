@@ -27,8 +27,12 @@ jobs:
       - name: Build ISO via Native BlueBuild Action
         uses: blue-build/github-action@v1.2.0
         with:
-          recipe: 'recipes/bazzite.yml'
+          # Указываем точный путь, который ищет утилита
+          recipe: 'config/recipes/bazzite.yml'
           cli_version: 'v0.9.5'
+          # Отключаем компиляцию самой ОС (экономит 40 минут)
+          compile: false
+          # Включаем генерацию загрузочного диска
           is_iso: true
           iso_image_tag: '43.20260420'
           iso_fedora_version: '43'
@@ -37,8 +41,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          # Официальный экшен всегда сохраняет готовый ISO в корень или системную подпапку
+          # Ищем файл во всем рабочем пространстве
           path: |
             *.iso
-            output/*.iso
+            **/*.iso
           retention-days: 2
