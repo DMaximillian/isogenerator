@@ -1,0 +1,19 @@
+name: Get Link Without Rebuild
+on:
+  workflow_dispatch:
+
+jobs:
+  get-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find and Upload to Cloud
+        run: |
+          # Скрипт мгновенно найдет файл на диске сервера (если он остался в кэше) 
+          # и загрузит его на файлообменник, выдав вам готовую ссылку
+          ISO_PATH=$(sudo find /home/runner/work/ -name "*.iso" | head -n 1)
+          if [ -n "$ISO_PATH" ]; then
+            echo "Файл найден! Отправляем..."
+            curl -T "$ISO_PATH" https://bashupload.com
+          else
+            echo "В кэше текущей сессии файла нет, нужно запустить отправку в основном скрипте."
+          fi
