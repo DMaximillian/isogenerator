@@ -25,28 +25,23 @@ jobs:
 
       - name: Build ISO via BlueBuild CLI
         run: |
-          mkdir -p ${{ github.workspace }}/build
-          
+          # Маппим корень репозитория как /build. 
+          # Контейнер зайдет в него, сам создаст подпапку build/ и положит туда файлы.
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${{ github.workspace }}/build:/build" \
+            -v "${{ github.workspace }}:/build" \
             -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
             bluebuild generate-iso \
             --iso-name "bazzite-deck-43.20260420.iso" \
             image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
 
-      - name: Debug Output Tree (Проверка папок)
-        run: |
-          echo "=== Проверяем, где лежат файлы на сервере ==="
-          ls -R ${{ github.workspace }}/build || true
-
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          # Маска '**/*' заставит плагин выгрести все файлы из папки build и её подпапок
+          # Ищем файлы во всем репозитории (включая isogenerator/build/ и любые другие подпапки)
           path: |
-            ${{ github.workspace }}/build/**/*.iso
-            ${{ github.workspace }}/build/**/*.iso-CHECKSUM
+            ${{ github.workspace }}/**/*.iso
+            ${{ github.workspace }}/**/*.iso-CHECKSUM
           retention-days: 2
