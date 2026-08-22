@@ -27,15 +27,15 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Мы изменили внутреннюю папку контейнера на /isogenerator/output
+          # Передаем образ принудительно через переменную OCI_REPO
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/isogenerator/output" \
+            -e OCI_REPO="ghcr.io/ublue-os/bazzite-deck" \
             -e IMAGE_NAME="bazzite-deck" \
             -e IMAGE_TAG="43.20260420" \
             -e FEDORA_MAJOR_VERSION="43" \
-            ghcr.io/ublue-os/isogenerator:latest \
-            ghcr.io/ublue-os/bazzite-deck:43.20260420
-
+            ghcr.io/ublue-os/isogenerator:latest
+            
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
