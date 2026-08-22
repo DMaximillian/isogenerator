@@ -27,14 +27,17 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Передаем переменные, которые Lorax напрямую подставит в свои аргументы
+          # Запускаем модифицированную команду. 
+          # Мы добавили bash-команду внутрь контейнера, которая удаляет проблемный пакет из списка до запуска Lorax
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/isogenerator/output" \
             -e OCI_REPO="ghcr.io/ublue-os/bazzite-deck" \
             -e VERSION="43" \
             -e IMAGE_TAG="43.20260420" \
             -e VARIANT="bazzite-deck" \
-            ghcr.io/ublue-os/isogenerator:latest
+            --entrypoint /bin/bash \
+            ghcr.io/ublue-os/isogenerator:latest \
+            -c "sed -i '/polkit-gnome/d' /usr/share/lorax/templates.d/99-generic/runtime-install.tmpl && /isogenerator/build.sh"
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
