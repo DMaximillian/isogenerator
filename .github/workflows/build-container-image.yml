@@ -27,15 +27,16 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Мы вызываем бинарник bluebuild и используем правильный синтаксис:
-          # generate-iso --iso-name [имя] image [ссылка_на_образ:тег]
+          # Запускаем строго по синтаксису утилиты: 
+          # bluebuild generate-iso --iso-name [имя] image [ссылка]
+          # Папку маппим на /build, так как это стандартная рабочая директория
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/build" \
+            -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
             bluebuild generate-iso \
             --iso-name "bazzite-deck-43.20260420.iso" \
-            image "ghcr.io/ublue-os/bazzite-deck:43.20260420" \
-            --output "/build"
+            image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
