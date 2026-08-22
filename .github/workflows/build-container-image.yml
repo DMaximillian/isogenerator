@@ -8,7 +8,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
     steps:
       - name: Free Disk Space (Bash script)
         run: |
@@ -24,22 +23,35 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build ISO via Native BlueBuild Action
-        uses: blue-build/github-action@v1.2.0
-        with:
-          # Указываем только имя, экшен сам будет искать в ./config/recipes/bazzite.yml
-          recipe: 'bazzite.yml'
-          cli_version: 'v0.9.5'
-          compile: false
-          is_iso: true
-          iso_image_tag: '43.20260420'
-          iso_fedora_version: '43'
+      - name: Build ISO via BlueBuild CLI
+        run: |
+          # Создаем чистую папку для сохранения ISO на хосте
+          mkdir -p ${{ github.workspace }}/output
+          
+          # Запускаем CLI-утилиту BlueBuild
+          docker run --rm --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}/output:/build" \
+            -w /build \
+            ghcr.io/blue-build/cli:v0.9.5 \
+            bluebuild generate-iso \
+            --iso-name "bazzite-deck-43.20260420.iso" \
+            image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
+
+      - name: Fix File Permissions and Verify (Гарантия поиска)
+        run: |
+          # Даем полные права на чтение всем вложенным файлам и папкам, созданным Docker
+          sudo chmod -R 755 ${{ github.workspace }}/output/
+          
+          echo "=== ТЕСТ: Выводим полное дерево файлов в папке output ==="
+          find ${{ github.workspace }}/output/ -type f
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
+          # Маска '**/*.iso' найдет образ, даже если BlueBuild спрятал его в output/build/
           path: |
-            *.iso
-            **/*.iso
+            ${{ github.workspace }}/output/**/*.iso
+            ${{ github.workspace }}/output/**/*.iso-CHECKSUM
           retention-days: 2
