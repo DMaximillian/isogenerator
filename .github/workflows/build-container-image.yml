@@ -1,14 +1,32 @@
-name: Fast Upload via Cloud Link
+name: Generate Bazzite 43 ISO
 on:
   workflow_dispatch:
 
 jobs:
-  upload-iso:
+  build-iso:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Build ISO (Instant from Cache)
+      - name: Free Disk Space (Bash script)
         run: |
-          # Запускаем сборку — Docker мгновенно возьмет готовый ISO из кэша за секунд 30
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /root/.dotnet
+          sudo rm -rf /opt/pipx
+          sudo rm -rf /usr/local/share/vcpkg
+          docker image prune --all --force
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build ISO via BlueBuild CLI
+        run: |
+          # Маппим корень репозитория как /build.
+          # Контейнер создаст там подпапку build/ и положит туда файлы.
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "${{ github.workspace }}:/build" \
@@ -18,16 +36,12 @@ jobs:
             --iso-name "bazzite-deck-43.20260420.iso" \
             image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
 
-      - name: Upload to Web Share
-        run: |
-          echo "=== Начинаем быструю отправку на файлообменник ==="
-          # Находим созданный файл во всем рабочем пространстве
-          ISO_FILE=$(find ${{ github.workspace }} -name "*.iso" | head -n 1)
-          
-          if [ -n "$ISO_FILE" ]; then
-            echo "Файл успешно найден! Загружаем на bashupload.com..."
-            # Отправляем файл в облако и выводим прямую ссылку на скачивание
-            curl -T "$ISO_FILE" https://bashupload.com
-          else
-            echo "Ошибка: Файл не найден на диске раннера!"
-          fi
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bazzite-deck-43.20260420-ISO
+          # Двойная звездочка заставит плагин найти файл на любой глубине папки workspace
+          path: |
+            ${{ github.workspace }}/**/*.iso
+            ${{ github.workspace }}/**/*.iso-CHECKSUM
+          retention-days: 2
