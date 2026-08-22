@@ -1,0 +1,4 @@
+name: bazzite-deck
+description: Сборка оригинального Bazzite 43
+base-image: ghcr.io/ublue-os/bazzite-deck
+image-version: 43.20260420
