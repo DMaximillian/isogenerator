@@ -1,0 +1,87 @@
+name: Build bazzite-deck ISO 43.20260420
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: recursive
+
+      - name: Determine Flatpak Dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          image="ghcr.io/ublue-os/bazzite-deck:43.20260420"
+          TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d -p "${{ github.workspace }}" flatpak.XXX)
+          FLATPAK_REFS_DIR="${{ github.workspace }}/installer/kde_flatpaks"
+          FLATPAK_REFS_DIR_LIST=$(cat "${FLATPAK_REFS_DIR}"/* | tr '\n' ' ')
+
+          cat << EOF > "${TEMP_FLATPAK_INSTALL_DIR}/script.sh"
+          mkdir -p /flatpak/flatpak /flatpak/triggers
+          mkdir /var/tmp || true
+          chmod -R 1777 /var/tmp
+          flatpak config --system --set languages "*"
+          flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --system -y ${FLATPAK_REFS_DIR_LIST}
+          ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks_with_deps
+          EOF
+
+          docker run --rm --privileged \
+            --entrypoint bash \
+            -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
+            -e FLATPAK_TRIGGERSDIR=/flatpak/triggers \
+            -v "${FLATPAK_REFS_DIR}:/output" \
+            -v "${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir" \
+            "${image}" /temp_flatpak_install_dir/script.sh
+
+      - name: Setup Bazzite Repo
+        shell: bash
+        run: |
+          curl -Lo "${{ github.workspace }}/bazzite.repo" \
+            "https://copr.fedorainfracloud.org/coprs/ublue-os/bazzite/repo/fedora-43/bazzite-org-bazzite-fedora-43.repo"
+
+      - name: Build ISO
+        id: build
+        uses: jasonn3/build-container-installer@c9ef3de33236e66781ec37bd0485e8009eaefe24
+        with:
+          arch: x86_64
+          image_name: bazzite-deck
+          image_repo: ghcr.io/ublue-os
+          image_tag: 43.20260420
+          variant: Kinoite
+          version: 43
+          iso_name: bazzite-deck-43.20260420-amd64.iso
+          secure_boot_key_url: '${{ github.server_url }}/${{ github.repository }}/raw/${{ github.ref_name }}/secure_boot.der'
+          enrollment_password: 'universalblue'
+          enable_cache_dnf: "false"
+          enable_cache_skopeo: "false"
+          flatpak_remote_refs_dir: installer/kde_flatpaks
+          enable_flatpak_dependencies: "false"
+          extra_boot_params: inst.resolution=1280x800
+          additional_templates: '/github/workspace/installer/lorax_templates/remove_root_password_prompt.tmpl /github/workspace/installer/lorax_templates/set_default_user.tmpl'
+          repos: '/github/workspace/bazzite.repo /etc/yum.repos.d/fedora.repo /etc/yum.repos.d/fedora-updates.repo'
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bazzite-deck-43.20260420-iso
+          path: |
+            ${{ steps.build.outputs.iso_path }}/${{ steps.build.outputs.iso_name }}
+            ${{ steps.build.outputs.iso_path }}/${{ steps.build.outputs.iso_name }}-CHECKSUM
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
