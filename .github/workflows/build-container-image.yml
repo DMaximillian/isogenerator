@@ -25,11 +25,10 @@ jobs:
 
       - name: Build ISO via BlueBuild CLI
         run: |
-          mkdir -p ${{ github.workspace }}/output
-          
+          # Запускаем сборку прямо в корневом пространстве репозитория
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${{ github.workspace }}/output:/build" \
+            -v "${{ github.workspace }}/build:/build" \
             -w /build \
             ghcr.io/blue-build/cli:v0.9.5 \
             bluebuild generate-iso \
@@ -40,6 +39,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          # Мы указали поиск во всех подпапках директории output
-          path: ${{ github.workspace }}/output/**/*.iso
+          # Ищем созданный ISO-файл в папке build, куда его сохранил Docker
+          path: ${{ github.workspace }}/build/*.iso
           retention-days: 2
