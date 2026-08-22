@@ -23,25 +23,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build ISO using BlueBuild (Official Native Method)
-        uses: blue-build/github-action@v1
-        with:
-          # Этот плагин автоматически развернет установщик Fedora 43 
-          # и зашьет внутрь него указанный нами образ Bazzite-Deck
-          recipe: '' 
-          cli_version: 'v0.9.5'
-          build_with: 'docker'
-          is_iso: true
-          iso_image_tag: '43.20260420'
-          iso_image_name: 'bazzite-deck'
-          iso_image_repo: 'ghcr.io/ublue-os'
-          iso_fedora_version: '43'
+      - name: Build ISO via BlueBuild CLI
+        run: |
+          mkdir -p ${{ github.workspace }}/output
+          
+          # Запускаем официальную CLI-утилиту BlueBuild напрямую через Docker,
+          # передавая точные аргументы для упаковки конкретной версии Bazzite 43
+          docker run --rm --privileged \
+            -v "${{ github.workspace }}/output:/build" \
+            ghcr.io/blue-build/cli:v0.9.5 \
+            generate-iso \
+            --ref-name "43.20260420" \
+            --image-name "bazzite-deck" \
+            --image-repo "ghcr.io/ublue-os" \
+            --fedora-version "43" \
+            --output "/build"
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          path: |
-            *.iso
-            output/*.iso
+          path: ${{ github.workspace }}/output/*.iso
           retention-days: 2
