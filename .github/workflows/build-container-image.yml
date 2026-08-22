@@ -27,8 +27,9 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Запускаем модифицированную команду. 
-          # Мы добавили bash-команду внутрь контейнера, которая удаляет проблемный пакет из списка до запуска Lorax
+          # Запускаем контейнер и передаем ему инструкцию: 
+          # Сначала удалить строку polkit-gnome из внутренних файлов Lorax системы, 
+          # а затем запустить стандартную сборку через команду 'make'
           docker run --rm --privileged \
             -v "${{ github.workspace }}/output:/isogenerator/output" \
             -e OCI_REPO="ghcr.io/ublue-os/bazzite-deck" \
@@ -37,7 +38,7 @@ jobs:
             -e VARIANT="bazzite-deck" \
             --entrypoint /bin/bash \
             ghcr.io/ublue-os/isogenerator:latest \
-            -c "sed -i '/polkit-gnome/d' /usr/share/lorax/templates.d/99-generic/runtime-install.tmpl && /isogenerator/build.sh"
+            -c "sed -i '/polkit-gnome/d' /usr/share/lorax/templates.d/99-generic/runtime-install.tmpl && make"
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
