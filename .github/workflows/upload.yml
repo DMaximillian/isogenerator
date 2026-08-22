@@ -1,19 +1,47 @@
-name: Get Link Without Rebuild
+name: Generate Bazzite 43 ISO
 on:
   workflow_dispatch:
 
 jobs:
-  get-link:
+  build-iso:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Find and Upload to Cloud
+      - name: Free Disk Space (Bash script)
         run: |
-          # Скрипт мгновенно найдет файл на диске сервера (если он остался в кэше) 
-          # и загрузит его на файлообменник, выдав вам готовую ссылку
-          ISO_PATH=$(sudo find /home/runner/work/ -name "*.iso" | head -n 1)
-          if [ -n "$ISO_PATH" ]; then
-            echo "Файл найден! Отправляем..."
-            curl -T "$ISO_PATH" https://bashupload.com
-          else
-            echo "В кэше текущей сессии файла нет, нужно запустить отправку в основном скрипте."
-          fi
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /root/.dotnet
+          sudo rm -rf /opt/pipx
+          sudo rm -rf /usr/local/share/vcpkg
+          docker image prune --all --force
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build ISO via BlueBuild CLI
+        run: |
+          # Маппим корень репозитория как /build. 
+          # Контейнер зайдет в него, сам создаст подпапку build/ и положит туда файлы.
+          docker run --rm --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/build" \
+            -w /build \
+            ghcr.io/blue-build/cli:v0.9.5 \
+            bluebuild generate-iso \
+            --iso-name "bazzite-deck-43.20260420.iso" \
+            image "ghcr.io/ublue-os/bazzite-deck:43.20260420"
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bazzite-deck-43.20260420-ISO
+          # Ищем файлы во всем репозитории (включая isogenerator/build/ и любые другие подпапки)
+          path: |
+            ${{ github.workspace }}/**/*.iso
+            ${{ github.workspace }}/**/*.iso-CHECKSUM
+          retention-days: 2
