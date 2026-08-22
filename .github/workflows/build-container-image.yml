@@ -27,8 +27,6 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/output
           
-          # Мы добавили проброс сокета: -v /var/run/docker.sock:/var/run/docker.sock
-          # Теперь контейнер получит доступ к движку Docker сервера GitHub
           docker run --rm --privileged \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "${{ github.workspace }}/output:/build" \
@@ -42,5 +40,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bazzite-deck-43.20260420-ISO
-          path: ${{ github.workspace }}/output/*.iso
+          # Мы указали поиск во всех подпапках директории output
+          path: ${{ github.workspace }}/output/**/*.iso
           retention-days: 2
